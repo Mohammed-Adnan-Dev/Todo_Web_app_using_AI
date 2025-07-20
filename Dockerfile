@@ -1,17 +1,23 @@
-# Use a lightweight Java image
-FROM openjdk:17-jdk-slim
+# ---- Build Stage ----
+FROM maven:3.8.7-openjdk-17 AS build
 
-# Set working directory
 WORKDIR /app
-
-# Copy everything to container
 COPY . .
 
-# Build the project
+# Build the project and skip tests
 RUN mvn clean package -DskipTests
 
-# Expose port (Render uses PORT env)
+# ---- Run Stage ----
+FROM openjdk:17-jdk-slim
+
+WORKDIR /app
+
+# Copy jar from build stage
+COPY --from=build /app/target/*.jar app.jar
+
+# Set port Render will use
+ENV PORT=8080
 EXPOSE 8080
 
-# Run the JAR (replace with your actual JAR name from target/)
-CMD ["java", "-jar", "target/TodoAIWebApp.jar"]
+# Run the jar
+CMD ["java", "-jar", "app.jar"]
