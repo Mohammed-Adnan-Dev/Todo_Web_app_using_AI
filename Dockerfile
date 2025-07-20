@@ -1,11 +1,17 @@
-# Build with Maven
-FROM maven:3.8.5-openjdk-17 AS build
+# Use a lightweight Java image
+FROM openjdk:17-jdk-slim
+
+# Set working directory
 WORKDIR /app
+
+# Copy everything to container
 COPY . .
-RUN mvn clean package -DskipTests
 
-# Deploy to Tomcat
-FROM tomcat:9.0-jdk17
-COPY --from=build /app/target/*.war /usr/local/tomcat/webapps/app.war
+# Build the project
+RUN ./mvnw clean package -DskipTests
 
+# Expose port (Render uses PORT env)
 EXPOSE 8080
+
+# Run the JAR (replace with your actual JAR name from target/)
+CMD ["java", "-jar", "target/TodoAIWebApp.jar"]
